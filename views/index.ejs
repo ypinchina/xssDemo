@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+  <textarea id="txt" cols="80" rows="30">
+  	<p>sks <button onclick="alert('攻击我')">点我</button></p>
+  </textarea>
+  	<button id="btn">评论提交</button>
+  	<button id="get">获取评论</button>
+  <script type="text/javascript" src="./javascripts/he.js"></script>
+  <script type="text/javascript" src="./javascripts/htmlparse.js"></script>
+  <script>
+  	function parse(str){
+  		var result="";
+  		try{
+		HTMLParser(he.unescape(str,{strict:true}),{
+		start:function(tag,attrs,unary){
+			if(tag=="style"||tag=="script"||tag=="link"||tag=="iframe"||tag=="frame") return;
+			result+="<"+tag;
+			for(var i=0;i<attrs.length;i++){
+				/*if(attrs[i].name=="onclick"||attrs[i].name=="onerror") return;*/
+				result+=" "+attrs[i].name+'="'+attrs[i].escaped+'"';
+			}
+			result+=unary?"/>":">"
+		},
+		end:function(tag){
+			result+="</"+tag+">";
+		},
+		chars:function(text){
+			result+=text;
+		},
+		comment:function(text){
+			result+="<!--"+text+"-->";
+		}
+		});
+		return result;
+  		}catch(e){
+  			console.log(e);
+  		}finally{
+
+  		}
+  		
+  	}
+  </script>
+  <script type="text/javascript">
+  	var btn =document.getElementById("btn");
+  	var get =document.getElementById("get");
+  	var txt =document.getElementById("txt");
+  	/*这里忽略兼容IE版本，下面xhr对象同理*/
+  	btn.addEventListener("click",function(){
+  		var xhr =new XMLHttpRequest();
+  		var url = "/comment?comment="+txt.value;
+  		xhr.open("GET",url,true);
+  		xhr.onreadystatechange=function(){
+  			if(xhr.readyState==4){
+  				if(xhr.status==200){
+  					console.log(xhr);
+  				}else{
+  				console.log("error");
+  			}
+  			} 			
+  		}
+  		xhr.send();
+  	});
+  		get.addEventListener("click",function(){
+  		var xhr =new XMLHttpRequest();
+  		var url = "/getComment";
+  		xhr.open("GET",url,true);
+  		xhr.onreadystatechange=function(){
+  			if(xhr.readyState==4){
+  				if(xhr.status==200){
+  					var text = parse(JSON.parse(xhr.response).comment);
+  					var span = document.createElement("span");
+  					span.innerHTML=text;
+  					document.body.appendChild(span);
+  				}else{
+  				console.log("error");
+  			}
+  			} 			
+  		}
+  		xhr.send();
+  	})
+  </script>
+  	</body>
+</html>
